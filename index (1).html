@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card Maker</title>
+<style>
+:root{--ink:#1d2433;--paper:#f6f7f9;--panel:#fff;--line:#d5d9e0;--accent:#1f4fd8}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.45 system-ui,sans-serif;color:var(--ink);background:var(--paper)}
+header{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;padding:12px 20px;background:var(--ink);color:#fff}
+@media(max-width:700px){header{grid-template-columns:1fr;justify-items:center}}
+header h1{font:700 18px/1.3 system-ui,sans-serif;margin:0}
+nav{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+#hr{justify-self:end}
+#hr:empty{display:none}
+.ret{background:#fff;color:var(--ink);border:1px solid #fff;padding:6px 14px;border-radius:6px;cursor:pointer}
+nav button{background:transparent;color:#cfd6e6;border:1px solid #46506a;padding:6px 14px;border-radius:6px;cursor:pointer}
+nav button.on{background:#fff;color:var(--ink);border-color:#fff}
+#bar{display:flex;flex-wrap:nowrap;gap:6px;align-items:center;padding:8px 20px;background:#e9ecf2;border-bottom:1px solid var(--line)}
+#bar .lbl{font-weight:600;margin-right:4px;flex:none;white-space:nowrap}
+#pills{display:flex;gap:6px;flex:1;min-width:0;overflow-x:hidden}
+#pills button{flex:none;white-space:nowrap}
+#bar .barnav{flex:none;border-radius:6px;padding:4px 10px}
+#bar .barnav:disabled{opacity:.35;cursor:default}
+#bar .edit{flex:none;white-space:nowrap}
+#bar button{border:1px solid var(--line);background:#fff;padding:4px 12px;border-radius:99px;cursor:pointer}
+#bar button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+#bar .edit{margin-left:auto;border-radius:6px}
+#bar .edit.on{background:var(--ink);border-color:var(--ink)}
+select,input,textarea,button{font:inherit}
+main{max-width:1200px;margin:0 auto;padding:20px}
+.cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;align-items:start}
+@media(max-width:800px){.cols{grid-template-columns:1fr}}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px}
+.box+.box{margin-top:20px}
+.box h2,.folder h2{font:700 15px/1.3 system-ui,sans-serif;margin:0 0 10px}
+.sticky{position:sticky;top:12px}
+label{display:block;font-weight:600;margin:10px 0 3px}
+input[type=text],input[type=date],textarea{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:6px}
+textarea{min-height:200px}
+.btn{background:var(--accent);color:#fff;border:0;padding:9px 16px;border-radius:6px;cursor:pointer;font-weight:600}
+.btn.alt{background:#e7eaf0;color:var(--ink)}
+.btn.warn{background:#b3261e;color:#fff}
+.btn.sm{padding:5px 11px;font-size:13px}
+.row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center}
+.row input[type=text]{width:220px}
+hr{border:0;border-top:2px dashed var(--line);margin:16px 0}
+.card{background:#fff;border:1px solid var(--line);padding:14px 16px;border-radius:4px}
+#hlText{white-space:pre-wrap;user-select:text}
+.cur-on{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M3 21l2-6 9-9 4 4-9 9z' fill='%23ffd400' stroke='%23222' stroke-width='1.5'/%3E%3C/svg%3E") 2 22,crosshair}
+.cur-off{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M3 21l2-6 9-9 4 4-9 9z' fill='%23ffffff' stroke='%23b3261e' stroke-width='1.5'/%3E%3Cpath d='M3 3l6 6M9 3l-6 6' stroke='%23b3261e' stroke-width='1.5'/%3E%3C/svg%3E") 2 22,crosshair}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:10px}
+.seg button{border:0;background:#fff;padding:7px 18px;cursor:pointer}
+.seg button.on{background:var(--ink);color:#fff}
+.hint{color:#59627a;font-size:13px;margin:0 0 10px}
+.pr{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:6px;border:1px solid transparent}
+.pr.ed{background:#eef2ff;border-color:#c5d0f5}
+.pr .nm{flex:1;font-weight:600}
+.pr button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 10px;cursor:pointer}
+.tag{font-size:12px;padding:2px 8px;border-radius:99px;background:#dfe4ee;color:#39435a}
+.tabwrap{display:flex;align-items:flex-end;gap:4px;margin:20px 0 -1px;position:relative;z-index:1}
+.tabs{display:flex;flex-wrap:nowrap;align-items:flex-end;gap:4px;flex:1;min-width:0;padding:0 4px;overflow-x:hidden}
+.tabnav{flex:none;border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 11px;margin-bottom:4px;cursor:pointer;font-size:16px;line-height:1.2}
+.tabnav:disabled{opacity:.35;cursor:default}
+.tab{flex:none;white-space:nowrap;border:1px solid var(--line);border-bottom:0;background:#e3e7ef;padding:7px 14px;margin-bottom:1px;border-radius:8px 8px 0 0;cursor:pointer;color:#39435a}
+.tab.on{background:#fff;font-weight:700;color:var(--ink);margin-bottom:0;padding-bottom:8px}
+.tab{user-select:none}
+.tab.over{outline:2px dashed var(--accent);outline-offset:-2px}
+.tab .dot{color:var(--accent);font-size:11px}
+.folder{background:#fff;border:1px solid var(--line);border-radius:0 8px 8px 8px;padding:16px}
+.el{padding:10px 0;border-top:1px solid var(--line)}
+.el:first-of-type{border-top:0}
+.el b{display:block;margin-bottom:6px}
+.fl{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:flex-end}
+.fl label{margin:0;font-weight:500;font-size:13px;display:flex;flex-direction:column;gap:2px}
+.fl label.ck{flex-direction:row;align-items:center;gap:5px}
+.fl label.tg{position:relative;flex-direction:row;align-items:center;justify-content:center;width:32px;height:30px;margin:0;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer;color:var(--ink)}
+.fl label.tg:hover{background:#eef1f6}
+.fl label.tg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.fl label.tg:has(input:checked){background:var(--ink);color:#fff;border-color:var(--ink)}
+.fl label.tg:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.tgs{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;flex:none}
+.fl .tgs input[type=color]{height:30px;width:36px}
+.tg svg{width:16px;height:16px;pointer-events:none}
+.fl input[type=text]{width:150px;padding:4px 6px}
+.fl input[type=number]{width:70px;padding:4px 6px}
+.fl input[type=color]{width:44px;height:28px;padding:0;border:1px solid var(--line)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <h1>Card Maker</h1>
+  <nav id="nav"></nav>
+  <div id="hr"></div>
+</header>
+<div id="bar"></div>
+<datalist id="fonts"></datalist>
+<main id="main"></main>
+
+<script>
+const $=id=>document.getElementById(id);
+const KEYS=[['topic','Topic'],['cite','Author, date, organization'],['link','Link'],['hl','Highlighted text'],['plain','Unhighlighted text']];
+// font-size limits (pt), not shown to the user
+const LIM={topic:[1,100],cite:[1,100],link:[1,100],hl:[1,100],plain:[1,100]};
+const MAXPRESETS=12,MAXNAME=30;
+const DEFAULT={
+  topic:{font:'Calibri',size:14,color:'#000000',ul:false,bold:true,hi:false,bg:'#ffff00'},
+  cite:{font:'Calibri',size:11,color:'#000000',ul:false,bold:true,hi:false,bg:'#ffff00'},
+  link:{font:'Calibri',size:8,color:'#1155cc',ul:true,bold:false,hi:false,bg:'#ffff00'},
+  hl:{font:'Calibri',size:11,color:'#000000',ul:true,bold:true,hi:true,bg:'#ffff00'},
+  plain:{font:'Calibri',size:8,color:'#000000',ul:false,bold:false,hi:false,bg:'#ffff00'}
+};
+const BUILTIN=['Arial','Calibri','Cambria','Times New Roman','Georgia','Verdana','Courier New','Trebuchet MS'];
+const GFONTS=['Roboto','Open Sans','Lato','Montserrat','Oswald','Merriweather','Playfair Display','Source Sans 3','Inter','Nunito','Poppins','Raleway','PT Serif','Lora','Libre Baskerville','EB Garamond','Roboto Mono','Roboto Slab','Noto Serif','Crimson Text','Comfortaa','Arimo','Tinos','Cousine','Carlito','Caladea'];
+$('fonts').innerHTML=[...BUILTIN,...GFONTS].map(f=>`<option value="${f}">`).join('');
+const ICON={
+ bold:'<svg viewBox="0 0 16 16" aria-hidden="true"><text x="8" y="12.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="14" fill="currentColor">B</text></svg>',
+ ul:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.5v5a3.5 3.5 0 0 0 7 0v-5M3.5 14h9" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ hi:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 2.5l3 3-6.5 6.5-3.2.7.7-3.2zM2.5 14h6" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'};
+const tg=(k,f,on,title)=>`<label class="tg" title="${title}"><input type="checkbox" aria-label="${title}" data-k="${k}" data-f="${f}" ${on?'checked':''}>${ICON[f]}</label>`;
+const loaded=new Set();
+function loadFont(n){
+  if(!n||loaded.has(n)||BUILTIN.includes(n))return;loaded.add(n);
+  const l=document.createElement('link');l.rel='stylesheet';
+  l.href='https://fonts.googleapis.com/css2?family='+encodeURIComponent(n).replace(/%20/g,'+')+':wght@400;700&display=swap';
+  document.head.appendChild(l);
+}
+const clone=o=>JSON.parse(JSON.stringify(o));
+const clamp=(v,[a,b])=>Math.min(b,Math.max(a,v));
+const cleanFont=v=>typeof v==='string'?v.replace(/[^\w \-]/g,'').trim().slice(0,60):'';
+const hex=(v,d)=>typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v)?v.toLowerCase():d;
+function fill(p){const o={};for(const [k] of KEYS){const q=(p&&typeof p==='object'&&p[k]&&typeof p[k]==='object')?p[k]:{},d=DEFAULT[k],bl=(v,x)=>typeof v==='boolean'?v:x;
+  o[k]={font:cleanFont(q.font)||d.font,size:clamp(+q.size||d.size,LIM[k]),color:hex(q.color,d.color),ul:bl(q.ul,d.ul),bold:bl(q.bold,d.bold),hi:bl(q.hi,d.hi),bg:hex(q.bg,d.bg)};}return o;}
+const SAMPLE={topic:'ISM is worsening this year',authors:'Vibhu Mishra',date:'2025-10-07',title:'Thousands flee amid renewed fighting in northern Mozambique, UN warns',org:'United Nations',link:'https://news.un.org/en/story/2025/10/1166049',
+ text:'The surge in displacement in late September marks a turning point in the conflict – now entering its eighth year – with more than 100,000 people already uprooted during 2025.\n\nThe violence has sharply intensified this year, with more than 500 incidents recorded through August – surpassing even the peaks of 2022.'};
+const SAMPLE_HL=(()=>{const a=new Uint8Array(SAMPLE.text.length);const s='more than 100,000 people already uprooted during 2025';const i=SAMPLE.text.indexOf(s);a.fill(1,i,i+s.length);return a;})();
+
+// ---- storage ----
+let store={presets:{Default:clone(DEFAULT)},active:'Default'};
+try{const s=JSON.parse(localStorage.getItem('cardmaker.v1'));if(s&&s.presets&&Object.keys(s.presets).length)store=s;}catch(e){}
+for(const n in store.presets)store.presets[n]=fill(store.presets[n]);
+if(!store.presets[store.active])store.active=Object.keys(store.presets)[0];
+function save(){try{localStorage.setItem('cardmaker.v1',JSON.stringify(store));}catch(e){}}
+const P=()=>store.presets[store.active];   // preset used for cards
+
+// ---- state ----
+let lastStep='card',view='card',mode='on',editing=null,renaming=false,delArmed=false;
+let data={topic:'',authors:'',date:'',title:'',org:'',link:'',text:''};
+let hl=new Uint8Array(0),hlFor='';
+let undoStack=[],redoStack=[],draftT=null,rstArmed=false,hlApi=null;
+const DKEYS={topic:200,authors:200,date:10,title:300,org:100,link:500,text:50000};
+function saveDraft(){try{
+  const ranges=[];
+  if(hlFor===data.text){let i=0;while(i<hl.length){if(hl[i]){let j=i;while(j<hl.length&&hl[j])j++;ranges.push([i,j]);i=j;}else i++;}}
+  localStorage.setItem('cardmaker.draft',JSON.stringify({data,ranges}));}catch(e){}}
+function queueDraft(){clearTimeout(draftT);draftT=setTimeout(saveDraft,300);}
+(function(){try{const d=JSON.parse(localStorage.getItem('cardmaker.draft'));if(!d||typeof d.data!=='object'||!d.data)return;
+  for(const k in DKEYS)if(typeof d.data[k]==='string')data[k]=d.data[k].slice(0,DKEYS[k]);
+  if(!/^\d{4}-\d\d-\d\d$/.test(data.date))data.date='';
+  hl=new Uint8Array(data.text.length);hlFor=data.text;
+  if(Array.isArray(d.ranges))for(const r of d.ranges)if(Array.isArray(r)&&Number.isInteger(r[0])&&Number.isInteger(r[1])&&r[0]>=0&&r[1]<=hl.length&&r[0]<r[1])hl.fill(1,r[0],r[1]);
+}catch(e){}})();
+window.addEventListener('pagehide',saveDraft);
+
+// ---- rendering ----
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function st(o){loadFont(o.font);return `font-family:'${o.font}',Calibri,Arial,sans-serif;font-size:${o.size}pt;color:${o.color};font-weight:${o.bold?700:400};text-decoration:${o.ul?'underline':'none'};`+(o.hi?`background:${o.bg};`:'');}
+function safeUrl(u){u=u.trim();if(!u)return '';if(/^https?:\/\//i.test(u))return u;
+  if(/^[a-z][a-z0-9+.\-]*:(?!\d+([\/?#]|$))/i.test(u))return '';return 'https://'+u.replace(/^\/+/,'');}
+function fmtDate(d){const m=/^(\d{4})-(\d\d)-(\d\d)$/.exec(d||'');return m?`${+m[2]}-${+m[3]}, ${m[1]}`:'';}
+function citeStr(d){return [d.authors.trim(),fmtDate(d.date),d.title.trim(),d.org.trim()].filter(Boolean).join(', ');}
+function runs(p,text,mask,br){
+  let out='',i=0;
+  const fx=t=>br?esc(t).replace(/\n/g,'<br>'):esc(t);
+  while(i<text.length){
+    const on=mask[i]?1:0;let j=i;
+    while(j<text.length&&(mask[j]?1:0)===on)j++;
+    out+=`<span style="${st(on?p.hl:p.plain)}">${fx(text.slice(i,j))}</span>`;
+    i=j;
+  }
+  return out;
+}
+function cardHTML(p,d,mask){
+  const link=d.link.trim(),href=safeUrl(link);
+  return `<div>`+
+   (d.topic.trim()?`<p style="margin:0 0 6px;${st(p.topic)}">${esc(d.topic.trim())}</p>`:'')+
+   (citeStr(d)?`<p style="margin:0 0 6px;${st(p.cite)}">${esc(citeStr(d))}</p>`:'')+
+   (link?`<p style="margin:0 0 6px;">${href?`<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="${st(p.link)}">${esc(link)}</a>`:`<span style="${st(p.link)}">${esc(link)}</span>`}</p>`:'')+
+   `<p style="margin:0">${runs(p,d.text,mask,true)}</p></div>`;
+}
+function previewMask(){return hlFor===data.text&&hl.length===data.text.length?hl:new Uint8Array(data.text.length);}
+
+// ---- header ----
+const STEPS=[['card','Card info'],['hl','Highlight'],['out','Finished card']];
+function barArrows(){const pv=$('pills');if(!pv)return;const ov=pv.scrollWidth>pv.clientWidth+1;
+  $('bl').hidden=$('br').hidden=!ov;$('bl').disabled=pv.scrollLeft<=0;$('br').disabled=pv.scrollLeft+pv.clientWidth>=pv.scrollWidth-1;}
+window.addEventListener('resize',barArrows);
+function drawNav(){
+  $('nav').innerHTML=STEPS.map(([k,l],i)=>`<button data-v="${k}" class="${view===k?'on':''}">${i+1}. ${l}</button>`).join('');
+  $('nav').querySelectorAll('button').forEach(b=>b.onclick=()=>go(b.dataset.v));
+  $('hr').innerHTML=view==='preset'?'<button class="ret" id="ret">Return</button>':'';
+  $('bar').hidden=view==='preset';
+  if(view==='preset'){$('ret').onclick=()=>go(lastStep,true);return;}
+  $('bar').innerHTML=`<span class="lbl">Preset in use:</span><button class="barnav" id="bl" aria-label="Previous presets" hidden>&lt;</button><div id="pills">`+
+    Object.keys(store.presets).map(n=>`<button data-n="${esc(n)}" class="${n===store.active?'on':''}">${esc(n)}</button>`).join('')+
+    `</div><button class="barnav" id="br" aria-label="Next presets" hidden>&gt;</button><button class="edit" id="editP">Edit presets</button>`;
+  $('bar').querySelectorAll('button[data-n]').forEach(b=>b.onclick=()=>{store.active=b.dataset.n;save();go(view,true);});
+  const pv=$('pills');
+  pv.querySelector('.on').scrollIntoView({inline:'nearest',block:'nearest'});
+  pv.onscroll=barArrows;
+  $('bl').onclick=()=>pv.scrollBy({left:-Math.max(150,pv.clientWidth*0.7),behavior:'smooth'});
+  $('br').onclick=()=>pv.scrollBy({left:Math.max(150,pv.clientWidth*0.7),behavior:'smooth'});
+  barArrows();setTimeout(barArrows,80);
+  $('editP').onclick=()=>go('preset');
+}
+function go(v,keep){
+  if(!keep)readCard();
+  view=v;if(v!=='preset')lastStep=v;
+  if(v==='hl'&&hlFor!==data.text){hl=new Uint8Array(data.text.length);hlFor=data.text;undoStack=[];redoStack=[];}
+  queueDraft();
+  drawNav();
+  ({card:drawCard,hl:drawHl,out:drawOut,preset:drawPreset})[v]();
+}
+function readCard(){
+  if(!$('f_topic'))return;
+  for(const k of ['topic','authors','date','title','org','link','text'])data[k]=$('f_'+k).value;
+}
+
+// ---- step 1 ----
+function drawCard(){
+  const f=(k,l,m,t='text')=>`<label for="f_${k}">${l}</label><input type="${t}" id="f_${k}" maxlength="${m}" value="${esc(data[k])}">`;
+  $('main').innerHTML=`<div class="cols"><div class="box">
+    ${f('topic','Topic name',200)}<hr>
+    ${f('authors','Author(s) name',200)}
+    ${f('date','Publication date',10,'date')}
+    ${f('title','Article name',300)}
+    ${f('org','Organization name',100)}
+    ${f('link','Link to article',500)}
+    <label for="f_text">Text from article</label><textarea id="f_text" maxlength="50000">${esc(data.text)}</textarea>
+    <div class="row"><button class="btn" id="next">Next</button><button class="btn alt" id="clr">Clear card</button></div></div>
+    <div class="box sticky"><h2>Preview (preset: ${esc(store.active)})</h2><div class="card" id="prev"></div></div></div>`;
+  const upd=()=>{readCard();queueDraft();$('prev').innerHTML=cardHTML(P(),data,previewMask());};
+  $('main').querySelectorAll('input,textarea').forEach(e=>e.oninput=upd);
+  $('next').onclick=()=>go('hl');
+  let clrArmed=false;
+  $('clr').onclick=()=>{const b=$('clr');if(!clrArmed){clrArmed=true;b.textContent='Click again to clear';b.className='btn warn';return;}
+    for(const k in data)data[k]='';hl=new Uint8Array(0);hlFor='';undoStack=[];redoStack=[];saveDraft();drawCard();};
+  upd();
+}
+
+// ---- step 2 ----
+function drawHl(){
+  $('main').innerHTML=`<div class="box"><h2>Highlight the text</h2>
+   <div class="row" style="margin:0 0 10px"><div class="seg" style="margin:0"><button id="mOn">Format</button><button id="mOff">Unformat</button></div><button class="btn alt sm" id="undo">Undo</button><button class="btn alt sm" id="redo">Redo</button></div>
+   <p class="hint" id="mh"></p>
+   <div class="card" id="hlText"></div>
+   <div class="row"><button class="btn alt" id="back">Back</button><button class="btn alt" id="all">Format all</button><button class="btn alt" id="clear">Unformat all</button><button class="btn" id="done">Next</button></div>
+   <p class="hint" style="margin:10px 0 0">Shortcuts: F = Format, U = Unformat, Ctrl/Cmd+Z = undo, Ctrl/Cmd+Shift+Z = redo.</p></div>`;
+  const box=$('hlText');
+  const paint=()=>{box.innerHTML=runs(P(),data.text,hl,false);};
+  const hist=()=>{$('undo').disabled=!undoStack.length;$('redo').disabled=!redoStack.length;};
+  const setMode=m=>{mode=m;$('mOn').className=m==='on'?'on':'';$('mOff').className=m==='off'?'on':'';
+    box.className='card '+(m==='on'?'cur-on':'cur-off');
+    $('mh').textContent=m==='on'?'Select text to apply the highlighted formatting.':'Select text to remove the highlighted formatting.';};
+  const mutate=fn=>{const before=hl.slice();fn();let same=true;for(let i=0;i<hl.length;i++)if(hl[i]!==before[i]){same=false;break;}
+    if(!same){undoStack.push(before);if(undoStack.length>100)undoStack.shift();redoStack=[];queueDraft();}paint();hist();};
+  const undo=()=>{if(!undoStack.length)return;redoStack.push(hl.slice());hl=undoStack.pop();paint();hist();queueDraft();};
+  const redo=()=>{if(!redoStack.length)return;undoStack.push(hl.slice());hl=redoStack.pop();paint();hist();queueDraft();};
+  hlApi={undo,redo,mode:setMode};
+  paint();setMode(mode);hist();
+  $('mOn').onclick=()=>setMode('on');$('mOff').onclick=()=>setMode('off');
+  $('undo').onclick=undo;$('redo').onclick=redo;
+  const pick=()=>{
+    const s=getSelection();if(!s.rangeCount||s.isCollapsed)return;
+    const r=s.getRangeAt(0);if(!box.contains(r.commonAncestorContainer))return;
+    const pre=document.createRange();pre.selectNodeContents(box);pre.setEnd(r.startContainer,r.startOffset);
+    const a=pre.toString().length,b=Math.min(a+r.toString().length,hl.length);
+    s.removeAllRanges();mutate(()=>hl.fill(mode==='on'?1:0,a,b));
+  };
+  box.addEventListener('mouseup',pick);box.addEventListener('touchend',()=>setTimeout(pick,50));
+  $('back').onclick=()=>go('card',true);
+  $('all').onclick=()=>mutate(()=>hl.fill(1));
+  $('clear').onclick=()=>mutate(()=>hl.fill(0));
+  $('done').onclick=()=>go('out',true);
+}
+document.addEventListener('keydown',e=>{
+  if(view!=='hl'||!hlApi)return;
+  if(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return;
+  const mod=e.ctrlKey||e.metaKey,k=e.key.toLowerCase();
+  if(mod&&k==='z'){e.preventDefault();e.shiftKey?hlApi.redo():hlApi.undo();}
+  else if(mod&&k==='y'){e.preventDefault();hlApi.redo();}
+  else if(!mod&&!e.altKey&&k==='f')hlApi.mode('on');
+  else if(!mod&&!e.altKey&&k==='u')hlApi.mode('off');
+});
+
+// ---- step 3 ----
+function drawOut(){
+  $('main').innerHTML=`<div class="box"><h2>Finished card</h2><div class="card" id="final">${cardHTML(P(),data,previewMask())}</div>
+   <div class="row"><button class="btn alt" id="back">Back</button><button class="btn" id="copy">Copy to clipboard</button><span id="msg" class="hint" style="margin:0"></span></div></div>`;
+  $('back').onclick=()=>go('hl',true);
+  $('copy').onclick=async()=>{
+    const el=$('final');let ok=false;
+    try{await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([el.innerHTML],{type:'text/html'}),'text/plain':new Blob([el.innerText],{type:'text/plain'})})]);ok=true;}catch(e){}
+    if(!ok){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);try{ok=document.execCommand('copy');}catch(e){}s.removeAllRanges();}
+    $('msg').textContent=ok?'Copied. Paste into your Google Doc.':'Copy failed. Select the card and press Ctrl/Cmd+C.';
+  };
+}
+
+// ---- presets ----
+function uniq(n){n=n.slice(0,MAXNAME);if(/^\d+$/.test(n))n='Preset '+n;let m=n,i=2;while(store.presets[m])m=n.slice(0,MAXNAME-4)+' ('+i++ +')';return m;}
+function renameKey(a,b){const o={};for(const k in store.presets)o[k===a?b:k]=store.presets[k];store.presets=o;if(store.active===a)store.active=b;editing=b;}
+function drawPreset(){
+  if(!store.presets[editing])editing=store.active;
+  const p=store.presets[editing];delArmed=false;rstArmed=false;
+  const tabs=Object.keys(store.presets).map(n=>`<div class="tab ${n===editing?'on':''}" role="button" tabindex="0" draggable="true" data-edit="${esc(n)}">${esc(n)}${n===store.active?' <span class="dot" title="In use">●</span>':''}</div>`).join('');
+  const els=KEYS.map(([k,l])=>`<div class="el"><b>${l}</b><div class="fl">
+   <label>Font<input type="text" list="fonts" maxlength="60" data-k="${k}" data-f="font" value="${esc(p[k].font)}"></label>
+   <label>Size (pt)<input type="number" min="${LIM[k][0]}" max="${LIM[k][1]}" step="0.5" data-k="${k}" data-f="size" value="${p[k].size}"></label>
+   <label>Text color<input type="color" data-k="${k}" data-f="color" value="${p[k].color}"></label>
+   <div class="tgs">${tg(k,'bold',p[k].bold,'Bold')}${tg(k,'ul',p[k].ul,'Underline')}${tg(k,'hi',p[k].hi,'Highlight')}<input type="color" id="bg_${k}" title="Highlight color" aria-label="Highlight color" data-k="${k}" data-f="bg" value="${p[k].bg}" ${p[k].hi?'':'hidden'}></div>
+   </div></div>`).join('');
+  const head=renaming
+    ?`<div class="row" style="margin:0 0 10px"><input type="text" id="rn" maxlength="${MAXNAME}" value="${esc(editing)}" aria-label="Preset name"><button class="btn sm" id="rnOk">Save name</button><button class="btn alt sm" id="rnNo">Cancel</button></div>`
+    :`<div class="row" style="margin:0 0 6px"><h2 style="margin:0;flex:1">${esc(editing)}</h2><button class="btn alt sm" id="ren">Rename</button><button class="btn alt sm" id="dup">Duplicate</button><button class="btn alt sm" id="rst">Reset to default</button><button class="btn alt sm" id="del">Delete</button></div>`;
+  $('main').innerHTML=`<div class="cols"><div>
+   <div class="box"><div class="row" style="margin:0"><input type="text" id="nn" maxlength="${MAXNAME}" placeholder="New preset name"><button class="btn sm" id="new">New preset</button><button class="btn alt sm" id="impb">Import</button><input type="file" id="imp" accept=".json,application/json" hidden></div>
+    <p class="hint" id="msg" style="margin:8px 0 0"></p></div>
+   <div class="tabwrap"><button class="tabnav" id="tl" aria-label="Previous tabs">&lt;</button><div class="tabs">${tabs}</div><button class="tabnav" id="tr" aria-label="Next tabs">&gt;</button></div>
+   <div class="folder">${head}${els}
+    <div class="row" style="margin:12px 0 0;padding-top:12px;border-top:1px solid var(--line)"><button class="btn alt sm" id="expOne">Export this preset</button><span class="hint" id="msg3" style="margin:0"></span></div></div>
+   <div class="box" style="margin-top:20px"><div class="row" style="margin:0"><b style="margin-right:6px">All presets</b><button class="btn alt sm" id="expAll">Export all</button><button class="btn alt sm" id="impAllb">Import all</button><input type="file" id="impAll" accept=".json,application/json" hidden></div>
+    <p class="hint" id="msg2" style="margin:8px 0 0"></p></div></div>
+   <div class="box sticky"><h2>Preview of “${esc(editing)}”</h2><div class="card" id="prev"></div></div></div>`;
+  const upd=()=>{$('prev').innerHTML=cardHTML(store.presets[editing],SAMPLE,SAMPLE_HL);};upd();
+  const tb=document.querySelector('.tabs');
+  const arrows=()=>{const ov=tb.scrollWidth>tb.clientWidth+1;$('tl').hidden=$('tr').hidden=!ov;
+    $('tl').disabled=tb.scrollLeft<=0;$('tr').disabled=tb.scrollLeft+tb.clientWidth>=tb.scrollWidth-1;};
+  tb.onscroll=arrows;window.onresize=arrows;
+  $('tl').onclick=()=>tb.scrollBy({left:-Math.max(150,tb.clientWidth*0.7),behavior:'smooth'});
+  $('tr').onclick=()=>tb.scrollBy({left:Math.max(150,tb.clientWidth*0.7),behavior:'smooth'});
+  document.querySelector('.tab.on').scrollIntoView({inline:'nearest',block:'nearest'});
+  arrows();setTimeout(arrows,80);
+  const msg=(t,id='msg')=>$(id).textContent=t;
+  const full=()=>{if(Object.keys(store.presets).length>=MAXPRESETS){msg('Limit of '+MAXPRESETS+' presets. Delete one first.');return true;}return false;};
+  $('main').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{editing=b.dataset.edit;renaming=false;go('preset',true);});
+  $('main').querySelectorAll('[data-k]').forEach(e=>{
+    const k=e.dataset.k,f=e.dataset.f,o=()=>store.presets[editing][k];
+    if(f==='size'){
+      e.oninput=()=>{const v=parseFloat(e.value);if(v>=LIM[k][0]&&v<=LIM[k][1]){o().size=v;save();upd();}};
+      e.onchange=()=>{const v=clamp(parseFloat(e.value)||o().size,LIM[k]);e.value=v;o().size=v;save();upd();};
+    }else if(f==='font'){
+      e.onchange=()=>{const v=cleanFont(e.value);if(v){o().font=v;e.value=v;save();upd();}else e.value=o().font;};
+    }else{
+      e.oninput=()=>{o()[f]=e.type==='checkbox'?e.checked:e.value;if(f==='hi')$('bg_'+k).hidden=!e.checked;save();upd();};
+    }
+  });
+  const mk=()=>{const n=$('nn').value.trim();if(!n){$('nn').focus();msg('Type a name for the new preset first.');return;}
+    if(full())return;const m=uniq(n);store.presets[m]=clone(DEFAULT);editing=m;renaming=false;save();go('preset',true);};
+  $('new').onclick=mk;$('nn').onkeydown=e=>{if(e.key==='Enter')mk();};
+  const rst=$('rst');if(rst)rst.onclick=()=>{
+    if(!rstArmed){rstArmed=true;rst.textContent='Click again to reset';rst.className='btn warn sm';return;}
+    store.presets[editing]=clone(DEFAULT);save();go('preset',true);};
+  let dragN=null;
+  $('main').querySelectorAll('.tab').forEach(t=>{
+    t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();t.click();}};
+    t.ondragstart=e=>{dragN=t.dataset.edit;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',dragN);}catch(x){}};
+    t.ondragover=e=>{if(dragN!==null){e.preventDefault();t.classList.add('over');}};
+    t.ondragleave=()=>t.classList.remove('over');
+    t.ondragend=()=>{dragN=null;document.querySelectorAll('.tab.over').forEach(x=>x.classList.remove('over'));};
+    t.ondrop=e=>{e.preventDefault();t.classList.remove('over');const to=t.dataset.edit;if(dragN===null||dragN===to)return;
+      const keys=Object.keys(store.presets),fi=keys.indexOf(dragN),ti=keys.indexOf(to);keys.splice(fi,1);keys.splice(ti,0,dragN);
+      const o={};keys.forEach(k=>o[k]=store.presets[k]);store.presets=o;dragN=null;save();go('preset',true);};
+  });
+  ['tl','tr'].forEach((id,i)=>{$(id).ondragover=e=>{if(dragN!==null){e.preventDefault();tb.scrollBy({left:i?16:-16});}};});
+  const ren=$('ren');if(ren)ren.onclick=()=>{renaming=true;go('preset',true);};
+  const dup=$('dup');if(dup)dup.onclick=()=>{if(full())return;
+    const m=uniq(editing+' copy');store.presets[m]=clone(store.presets[editing]);editing=m;renaming=true;save();go('preset',true);};
+  const del=$('del');if(del)del.onclick=()=>{
+    if(Object.keys(store.presets).length<2){msg('You need at least one preset.');return;}
+    if(!delArmed){delArmed=true;del.textContent='Click again to delete';del.className='btn warn sm';return;}
+    delete store.presets[editing];if(store.active===editing)store.active=Object.keys(store.presets)[0];editing=store.active;save();go('preset',true);};
+  if(renaming){
+    $('rn').focus();$('rn').select();
+    const ok=()=>{const n=$('rn').value.trim();renaming=false;if(n&&n!==editing){renameKey(editing,uniq(n));save();}go('preset',true);};
+    $('rnOk').onclick=ok;$('rn').onkeydown=e=>{if(e.key==='Enter')ok();};
+    $('rnNo').onclick=()=>{renaming=false;go('preset',true);};
+  }
+  const dl=(obj,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,1)],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();a.remove();};
+  const safe=n=>n.replace(/[^\w\-]+/g,'_').slice(0,30)||'preset';
+  const ex1=$('expOne');if(ex1)ex1.onclick=()=>{dl({type:'cardmaker-preset',name:editing,preset:store.presets[editing]},'card-maker-preset-'+safe(editing)+'.json');msg('Exported "'+editing+'".','msg3');};
+  $('expAll').onclick=()=>{dl({type:'cardmaker-presets',presets:store.presets},'card-maker-all-presets.json');msg('Exported all '+Object.keys(store.presets).length+' presets.','msg2');};
+  const BAD=['__proto__','constructor','prototype'];
+  const okName=n=>typeof n==='string'&&n.trim()&&!BAD.includes(n.trim());
+  const readJson=(input,id,cb)=>{
+    const f=input.files[0];input.value='';if(!f)return;
+    const bad='That file is not a Card Maker presets file. Choose a .json file exported from this site.';
+    if(!/\.json$/i.test(f.name)){msg('Wrong file type. Choose a .json file exported from this site.',id);return;}
+    if(f.size>500000){msg('That file is too large to be a presets file.',id);return;}
+    const r=new FileReader();
+    r.onerror=()=>msg('The file could not be read.',id);
+    r.onload=()=>{let j;try{j=JSON.parse(r.result);}catch(x){msg(bad,id);return;}
+      if(!j||typeof j!=='object'||Array.isArray(j)){msg(bad,id);return;}
+      try{cb(j);}catch(x){msg('Something was wrong inside that file, so nothing was imported.',id);}};
+    r.readAsText(f);
+  };
+  $('impb').onclick=()=>$('imp').click();
+  $('imp').onchange=e=>readJson(e.target,'msg',j=>{
+    if(j.type==='cardmaker-preset'&&j.preset&&typeof j.preset==='object'&&okName(j.name)){
+      if(full())return;
+      const m=uniq(j.name.trim());store.presets[m]=fill(j.preset);editing=m;renaming=false;save();go('preset',true);$('msg').textContent='Imported "'+m+'".';
+    }else if(j.type==='cardmaker-presets'||j.presets)msg('That file holds several presets. Use "Import all" at the bottom instead.');
+    else msg('That file is not a Card Maker preset.');
+  });
+  $('impAllb').onclick=()=>$('impAll').click();
+  $('impAll').onchange=e=>readJson(e.target,'msg2',j=>{
+    if(j.type==='cardmaker-preset'){msg('That file holds a single preset. Use "Import" at the top instead.','msg2');return;}
+    const src=j.presets;
+    if(!src||typeof src!=='object'||Array.isArray(src)){msg('That file is not a Card Maker presets file.','msg2');return;}
+    let c=0,skip=0;
+    for(const n of Object.keys(src)){
+      if(!okName(n)||!src[n]||typeof src[n]!=='object'||Object.keys(store.presets).length>=MAXPRESETS){skip++;continue;}
+      store.presets[uniq(n.trim())]=fill(src[n]);c++;
+    }
+    if(!c){msg('No usable presets were found in that file.','msg2');return;}
+    save();go('preset',true);
+    $('msg2').textContent='Imported '+c+' preset(s)'+(skip?'; skipped '+skip+' (invalid, or over the limit of '+MAXPRESETS+').':'.');
+  });
+}
+
+go('card',true);
+</script>
+</body>
+</html>
